@@ -1,8 +1,17 @@
-import { Plus, Search, FileDown } from "lucide-react";
+import { Plus, Search, FileDown, MoreHorizontal } from "lucide-react";
 import { Header } from "./components/header";
 import { Tabs } from "./components/tabs";
 import { Button } from "./components/ui/button";
 import { Control, Input } from "./components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/ui/table";
+import { Pagination } from "./components/pagination";
 
 export function App() {
   return (
@@ -31,6 +40,41 @@ export function App() {
             Export
           </Button>
         </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead></TableHead>
+              <TableHead>Tag</TableHead>
+              <TableHead>Amount of videos</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 10 }).map((value, index) => {
+              return (
+                <TableRow key={index}>
+                  <TableCell></TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">React</span>
+                      <span className="text-xs text-zinc-500">
+                        2d637791-c290-4dcf-aed0-e4b92b234a7f
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-zinc-500">13 video(s)</TableCell>
+                  <TableCell className="text-right">
+                    <Button size="icon">
+                      <MoreHorizontal className="size-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+        <Pagination />
       </main>
     </div>
   );
