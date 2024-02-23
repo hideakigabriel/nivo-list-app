@@ -12,7 +12,8 @@ import {
   TableRow,
 } from "./components/ui/table";
 import { Pagination } from "./components/pagination";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 
 export interface tagsResponse {
   first: number;
@@ -31,21 +32,30 @@ export interface Tag {
 }
 
 export function App() {
+
+  const [searchParams] = useSearchParams()
+
+  const page = searchParams.get("page") ? Number(searchParams.get("page")) : 1
+
   const { data: tagsResponse, isLoading } = useQuery<tagsResponse>({
-    queryKey: ["get-tags"],
+    queryKey: ["get-tags", page],
     queryFn: async () => {
-      const response = await fetch("http://localhost:3333/tags?_page=1&_per_page=10");
+      const response = await fetch(`http://localhost:3333/tags?_page=${page}&_per_page=10`);
       const data = await response.json();
 
       console.log(data);
 
       return data;
     },
+    placeholderData: keepPreviousData,
   });
 
   if (isLoading) {
     return (
-      <span className="text-center animate-pulse">Loading...</span>
+      <div className="flex flex-col items-center justify-center mt-[20%]">
+        <img className="size-24" src="./src/assets/logo-nivo.svg" alt="Logo Nivo" />
+        <span className="text-center text-lg animate-pulse">Loading...</span>
+      </div>
     )
   }
 
@@ -107,7 +117,7 @@ export function App() {
             })}
           </TableBody>
         </Table>
-        {tagsResponse && <Pagination pages={tagsResponse.pages} items={tagsResponse.items} page={1} />}
+        {tagsResponse && <Pagination pages={tagsResponse.pages} items={tagsResponse.items} page={page} />}
       </main>
     </div>
   );
