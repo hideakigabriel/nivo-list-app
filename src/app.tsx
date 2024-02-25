@@ -1,4 +1,4 @@
-import { Plus, Search, FileDown, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Filter, FileDown, MoreHorizontal } from "lucide-react";
 import { Header } from "./components/header";
 import { Tabs } from "./components/tabs";
 import { Button } from "./components/ui/button";
@@ -34,26 +34,19 @@ export interface Tag {
 }
 
 export function App() {
+const [searchParams, setSearchParams] = useSearchParams();
+  const urlFilter = searchParams.get("filter") ?? "";
+  
+  const [filter, setFilter] = useState(urlFilter);
 
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [filter, setFilter] = useState("")
-
-  const debounceFilter = useDebounceValue(filter, 1000)
-
-  const page = searchParams.get("page") ? Number(searchParams.get("page")) : 1
-
-  useEffect(() => {
-    setSearchParams(params => {
-      params.set("page", "1")
-
-      return params
-    })
-  }, [debounceFilter, setSearchParams])
+  const page = searchParams.get("page") ? Number(searchParams.get("page")) : 1;
 
   const { data: tagsResponse, isLoading } = useQuery<tagsResponse>({
-    queryKey: ["get-tags", debounceFilter, page],
+    queryKey: ["get-tags", urlFilter, page],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3333/tags?_page=${page}&_per_page=10&title=${debounceFilter}`);
+      const response = await fetch(
+        `http://localhost:3333/tags?_page=${page}&_per_page=10&title=${urlFilter}`
+      );
       const data = await response.json();
 
       console.log(data);
@@ -61,16 +54,29 @@ export function App() {
       return data;
     },
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 60
+    staleTime: 1000 * 60,
   });
+
+  function handleFilter() {
+    setSearchParams((params) => {
+      params.set("page", "1");
+      params.set("filter", filter);
+
+      return params;
+    });
+  }
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center mt-[20%]">
-        <img className="size-24" src="./src/assets/logo-nivo.svg" alt="Logo Nivo" />
+        <img
+          className="size-24"
+          src="./src/assets/logo-nivo.svg"
+          alt="Logo Nivo"
+        />
         <span className="text-center text-lg animate-pulse">Loading...</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -89,19 +95,20 @@ export function App() {
         </div>
 
         <div className="flex items-center justify-between">
-          <Input variant="filter">
-            <Search className="size-3" />
-            <Control 
-              placeholder="Search tags..." 
-              onChange={e => setFilter(e.target.value)}
-              value={filter} 
-            />
-          </Input>
-
-          <Button>
-            <FileDown className="size-3" />
-            Export
-          </Button>
+          <div className="flex items-center">
+            <Input variant="filter">
+              <Search className="size-3" />
+              <Control
+                placeholder="Search tags..."
+                onChange={(e) => setFilter(e.target.value)}
+                value={filter}
+              />
+            </Input>
+            <Button onClick={handleFilter}>
+              <Filter className="size-3" />
+              Filter
+            </Button>
+          </div>
         </div>
 
         <Table>
@@ -124,7 +131,9 @@ export function App() {
                       <span className="text-xs text-zinc-500">{tag.id}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-zinc-500">{tag.amountOfVideos} video(s)</TableCell>
+                  <TableCell className="text-zinc-500">
+                    {tag.amountOfVideos} video(s)
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button size="icon">
                       <MoreHorizontal className="size-4" />
@@ -135,7 +144,13 @@ export function App() {
             })}
           </TableBody>
         </Table>
-        {tagsResponse && <Pagination pages={tagsResponse.pages} items={tagsResponse.items} page={page} />}
+        {tagsResponse && (
+          <Pagination
+            pages={tagsResponse.pages}
+            items={tagsResponse.items}
+            page={page}
+          />
+        )}
       </main>
     </div>
   );
